@@ -308,3 +308,17 @@ app.use('/api', (req, res) => bad(res, 'Not found', 404));
 app.get('*', (req, res) => res.status(404).sendFile(path.join(__dirname, 'public', '404.html')));
 
 app.listen(PORT, () => console.log(`Wanderly running → http://localhost:${PORT}`));
+// Make sure express JSON middleware is enabled near the top of server.js:
+app.use(express.json());
+
+// Simple login API endpoint
+app.post('/api/login', (req, res) => {
+    const { email, password } = req.body;
+
+    // Replace this demo check with database validation (e.g. MongoDB/JSON DB) when ready
+    if (email === "user@example.com" && password === "password123") {
+        return res.status(200).json({ success: true, message: "Login successful" });
+    }
+
+    return res.status(401).json({ success: false, message: "Invalid email or password" });
+});
