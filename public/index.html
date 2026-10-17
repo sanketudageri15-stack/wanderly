@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Wanderly · Plan smarter trips, spend wiser</title>
+  <meta name="description" content="Wanderly helps you discover destinations, estimate costs, plan itineraries and track your travel budget in one place.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="site.css">
+  <script>
+    window.FALLBACK_IMG = 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#a5f3fc"/><stop offset="1" stop-color="#c7d2fe"/></linearGradient></defs><rect width="800" height="600" fill="url(#g)"/></svg>');
+  </script>
+</head>
+<body>
+
+<header class="nav" id="nav">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <span class="logo"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 3 3 10.5l7 2.5 2.5 7z"/></svg></span>
+      Wanderly
+    </a>
+    <nav class="links">
+      <a href="#destinations">Destinations</a>
+      <a href="#features">Features</a>
+      <a href="#how">How it works</a>
+      <a href="#estimator">Estimator</a>
+      <a href="#faq">FAQ</a>
+    </nav>
+    <div class="nav-cta">
+      <a class="btn btn-ghost btn-sm" href="/app.html#/explore">Explore</a>
+      <a class="btn btn-primary btn-sm" href="/app.html">Open dashboard</a>
+    </div>
+    <button class="burger" id="burger" aria-label="Menu"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <span class="eyebrow">✈ Smart travel & budget planner</span>
+      <h1>Travel <span class="grad-text">smarter.</span><br>Spend <span class="grad-text">wiser.</span></h1>
+      <p class="lead">Discover where to go, know what it will cost before you book, and keep every expense, activity and packing item in one beautiful place.</p>
+      <form class="quick" id="quickForm">
+        <div class="f"><label>Where to?</label><select id="qDest"></select></div>
+        <div class="f"><label>Days</label><input id="qDays" type="number" min="1" max="60" value="7"></div>
+        <div class="f"><label>Travelers</label><input id="qTrav" type="number" min="1" max="20" value="2"></div>
+        <button class="btn btn-primary">Get estimate</button>
+      </form>
+      <div class="hero-note"><span>No sign-up needed to estimate</span><span>Multi-currency</span><span>Itinerary + packing included</span></div>
+    </div>
+    <div class="collage">
+      <div class="ph ph1"><img src="https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&w=900&q=70" alt="Bali rice terraces" onerror="this.onerror=null;this.src=FALLBACK_IMG"></div>
+      <div class="ph ph2"><img src="https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?auto=format&fit=crop&w=700&q=70" alt="Santorini" onerror="this.onerror=null;this.src=FALLBACK_IMG"></div>
+      <div class="ph ph3"><img src="https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?auto=format&fit=crop&w=700&q=70" alt="Tokyo" onerror="this.onerror=null;this.src=FALLBACK_IMG"></div>
+      <div class="float-card fc1"><small>Sample trip · Bali</small><b>62% of budget used</b><div class="mini-bar"><i></i></div></div>
+      <div class="float-card fc2"><small>Next activity</small><b>Sunrise trek · 06:00</b></div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats"><div class="wrap"><div class="stats-row rv">
+  <div><b id="stDest">10</b><span>Curated destinations</span></div>
+  <div><b id="stCur">11</b><span>Currencies supported</span></div>
+  <div><b>3</b><span>Travel styles priced</span></div>
+  <div><b>7</b><span>Expense categories</span></div>
+</div></div></div>
+
+<!-- DESTINATIONS -->
+<section id="destinations">
+  <div class="wrap">
+    <div class="sec-head rv"><span class="eyebrow">Destinations</span><h2>Where will you go next?</h2><p>Hand-picked places with realistic daily costs, best seasons and honest ratings.</p></div>
+    <div class="filters rv" id="filters"></div>
+    <div class="dgrid" id="dgrid"></div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features" id="features">
+  <div class="wrap">
+    <div class="sec-head rv"><span class="eyebrow">Features</span><h2>Everything for a stress-free trip</h2><p>From the first idea to the last receipt, Wanderly keeps your plan and your money in sync.</p></div>
+    <div class="fgrid">
+      <div class="fcard rv"><div class="ic" style="background:#dff3ff;color:#0284c7"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="3"/><path d="M3 11h18M16 15h2"/></svg></div><h3>Budget tracking</h3><p>Set a budget per trip, log expenses by category and watch a live health ring warn you before you overspend.</p></div>
+      <div class="fcard rv"><div class="ic" style="background:#dcf7f3;color:#0d9488"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="3"/><path d="M8 7h8M8 12h2m4 0h2M8 16h2m4 0h2"/></svg></div><h3>Smart estimator</h3><p>Price flights, stay, food, transport and activities for budget, comfort or luxury — before you book anything.</p></div>
+      <div class="fcard rv"><div class="ic" style="background:#ffe9e2;color:#ea580c"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4M16 2v4M3 9h18"/><rect x="3" y="4" width="18" height="17" rx="3"/><path d="m9 15 2 2 4-4"/></svg></div><h3>Day-by-day itinerary</h3><p>Build a timeline for every day of your trip with times, notes and booking details in one view.</p></div>
+      <div class="fcard rv"><div class="ic" style="background:#ede9fe;color:#7c3aed"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div><h3>Packing checklist</h3><p>Start from a ready-made list, tick items off as you pack and add your own essentials.</p></div>
+      <div class="fcard rv"><div class="ic" style="background:#fff3d6;color:#b45309"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4 3 8l4 4M3 8h14M17 20l4-4-4-4m4 4H7"/></svg></div><h3>Multi-currency</h3><p>Switch the whole dashboard between 11 currencies and convert on the fly with the built-in converter.</p></div>
+      <div class="fcard rv"><div class="ic" style="background:#ffe4ef;color:#db2777"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m7 15 4-4 3 3 5-6"/></svg></div><h3>Clear insights</h3><p>See where your money goes with spending breakdowns and safe daily limits for the days you have left.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="how">
+  <div class="wrap steps-grid">
+    <div class="steps-img rv"><img src="https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=1000&q=70" alt="Road trip through mountains" loading="lazy" onerror="this.onerror=null;this.src=FALLBACK_IMG"></div>
+    <div>
+      <div class="rv"><span class="eyebrow">How it works</span><h2>From idea to itinerary in three steps</h2></div>
+      <div class="step rv"><div class="num">1</div><div><h3>Pick &amp; estimate</h3><p>Choose a destination and travel style to get an instant, realistic cost breakdown.</p></div></div>
+      <div class="step rv"><div class="num">2</div><div><h3>Plan the details</h3><p>Turn the estimate into a trip, then add activities, dates and a packing list.</p></div></div>
+      <div class="step rv"><div class="num">3</div><div><h3>Track as you go</h3><p>Log spending on the road and stay inside your budget with live progress.</p></div></div>
+      <a class="btn btn-primary rv" href="/app.html" style="margin-top:14px">Start planning →</a>
+    </div>
+  </div>
+</section>
+
+<!-- ESTIMATOR -->
+<section class="est" id="estimator">
+  <div class="wrap">
+    <div class="sec-head rv"><span class="eyebrow">Budget estimator</span><h2>What will your trip really cost?</h2><p>Try it right here — no account, no hassle.</p></div>
+    <div class="est-grid">
+      <div class="panel rv"><form id="estForm">
+        <div class="field"><label>Destination</label><select name="destId" id="eDest"></select></div>
+        <div class="row2"><div class="field"><label>Days</label><input type="number" name="days" id="eDays" min="1" max="60" value="7"></div><div class="field"><label>Travelers</label><input type="number" name="travelers" id="eTrav" min="1" max="20" value="2"></div></div>
+        <div class="field"><label>Travel style</label><div class="seg">
+          <label><input type="radio" name="style" value="budget">Budget</label>
+          <label><input type="radio" name="style" value="mid" checked>Comfort</label>
+          <label><input type="radio" name="style" value="luxury">Luxury</label></div></div>
+        <div class="field"><label>Show prices in</label><select id="eCur"></select></div>
+        <button class="btn btn-primary" style="width:100%">Calculate estimate</button>
+      </form></div>
+      <div id="estResult" class="rv"><div class="panel placeholder"><div class="big">🧭</div><h3>Your estimate appears here</h3><p>Pick a destination and hit calculate.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta">
+  <div class="wrap"><div class="cta-box rv">
+    <img src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1600&q=70" alt="" loading="lazy" onerror="this.onerror=null;this.src=FALLBACK_IMG">
+    <div class="cta-in"><h2>Your next trip deserves a plan.</h2><p>Open the dashboard to create a trip, set a budget and start tracking in under a minute.</p>
+      <a class="btn btn-white" href="/app.html">Open the dashboard →</a></div>
+  </div></div>
+</section>
+
+<!-- FAQ -->
+<section id="faq">
+  <div class="wrap">
+    <div class="sec-head rv"><span class="eyebrow">FAQ</span><h2>Questions, answered</h2></div>
+    <div class="faq rv">
+      <details open><summary>How accurate are the estimates?</summary><p>Estimates use typical daily costs per destination and travel style plus an average flight price. They're a planning baseline — your actual costs will vary with season, booking time and choices.</p></details>
+      <details><summary>Which currencies are supported?</summary><p>You can view prices in INR, USD, EUR, GBP, JPY, AED, THB, IDR, CHF, AUD and SGD. Exchange rates in this version are fixed reference values, so treat conversions as indicative.</p></details>
+      <details><summary>Where is my data stored?</summary><p>Trips, expenses, itineraries and packing lists are saved by the Wanderly server in a local JSON file. Run it yourself and the data stays with you.</p></details>
+      <details><summary>Can I track a trip with several travelers?</summary><p>Yes. Set the traveler count when you create a trip and the dashboard shows the per-person daily budget alongside the totals.</p></details>
+      <details><summary>Can I add destinations that aren't listed?</summary><p>The destination list lives in the server's data file, so adding more is a matter of adding an entry with its daily costs and a photo.</p></details>
+    </div>
+  </div>
+</section>
+
+<!-- NEWSLETTER -->
+<div class="wrap">
+  <div class="news rv">
+    <div><h2 style="font-size:30px">Get smart travel tips</h2><p style="color:var(--muted);margin-top:8px">Occasional budgeting and planning ideas. Unsubscribe any time.</p></div>
+    <div><form id="subForm"><input type="email" id="subEmail" placeholder="you@email.com" required><button class="btn btn-primary">Subscribe</button></form><div class="msg" id="subMsg"></div></div>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap">
+    <div class="foot">
+      <div><a class="brand" href="/" style="padding:0"><span class="logo"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 3 3 10.5l7 2.5 2.5 7z"/></svg></span>Wanderly</a><p>Plan smarter trips and keep your travel budget under control.</p></div>
+      <div><h4>Explore</h4><a href="#destinations">Destinations</a><a href="#estimator">Estimator</a><a href="/app.html#/currency">Currency converter</a></div>
+      <div><h4>Product</h4><a href="#features">Features</a><a href="#how">How it works</a><a href="/app.html">Dashboard</a></div>
+      <div><h4>Help</h4><a href="#faq">FAQ</a><a href="#top" onclick="window.scrollTo({top:0})">Back to top</a></div>
+    </div>
+    <div class="copy"><span>© <span id="yr"></span> Wanderly. Photos via Unsplash.</span><span>Made for curious travelers.</span></div>
+  </div>
+</footer>
+
+<div id="toastRoot"></div>
+<script src="site.js"></script>
+</body>
+</html>

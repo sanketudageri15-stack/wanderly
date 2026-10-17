@@ -1,0 +1,346 @@
+{
+  "trips": [
+    {
+      "id": "782e532546",
+      "name": "Tokyo getaway",
+      "destId": "tokyo",
+      "destination": "Tokyo, Japan",
+      "image": "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?auto=format&fit=crop&w=1200&q=70",
+      "start": "2026-11-16",
+      "end": "2026-11-22",
+      "travelers": 2,
+      "budget": 2000,
+      "currency": "INR",
+      "itinerary": [],
+      "expenses": [],
+      "packing": [
+        {
+          "id": "493a5a78ac",
+          "text": "Passport & visa",
+          "done": false
+        },
+        {
+          "id": "13c2316660",
+          "text": "Travel insurance",
+          "done": false
+        },
+        {
+          "id": "8c5ce1e9f5",
+          "text": "Phone charger & power bank",
+          "done": false
+        },
+        {
+          "id": "76d86f3a4d",
+          "text": "Universal adapter",
+          "done": false
+        },
+        {
+          "id": "7961e06e36",
+          "text": "Medicines & first-aid",
+          "done": false
+        },
+        {
+          "id": "f008163e7a",
+          "text": "Sunscreen",
+          "done": false
+        },
+        {
+          "id": "725d2fd386",
+          "text": "Comfortable shoes",
+          "done": false
+        },
+        {
+          "id": "21c039915d",
+          "text": "Reusable water bottle",
+          "done": false
+        }
+      ]
+    },
+    {
+      "id": "a53016b170",
+      "name": "Bali Reset",
+      "destId": "bali",
+      "destination": "Bali, Indonesia",
+      "image": "https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&w=1200&q=70",
+      "start": "2026-11-07",
+      "end": "2026-11-14",
+      "travelers": 2,
+      "budget": 3200,
+      "currency": "USD",
+      "itinerary": [
+        {
+          "id": "52b064975a",
+          "day": 1,
+          "time": "15:00",
+          "title": "Check in at Ubud villa",
+          "note": "Rice-terrace view room"
+        },
+        {
+          "id": "17d1023fd1",
+          "day": 2,
+          "time": "06:00",
+          "title": "Sunrise at Mount Batur",
+          "note": "Guided trek, bring a jacket"
+        },
+        {
+          "id": "e4f958d541",
+          "day": 3,
+          "time": "10:00",
+          "title": "Tegalalang rice terraces",
+          "note": ""
+        },
+        {
+          "id": "6d28b2087f",
+          "day": 5,
+          "time": "17:30",
+          "title": "Uluwatu temple & Kecak dance",
+          "note": ""
+        }
+      ],
+      "expenses": [
+        {
+          "id": "22d7feebf9",
+          "title": "Return flights",
+          "category": "Flights",
+          "amount": 1300,
+          "date": "2026-10-05"
+        },
+        {
+          "id": "a3076bdce5",
+          "title": "Villa deposit",
+          "category": "Stay",
+          "amount": 480,
+          "date": "2026-10-09"
+        },
+        {
+          "id": "281dbd4bce",
+          "title": "Travel insurance",
+          "category": "Other",
+          "amount": 64,
+          "date": "2026-10-12"
+        }
+      ],
+      "packing": [
+        {
+          "id": "6ddef6993a",
+          "text": "Passport & visa",
+          "done": true
+        },
+        {
+          "id": "8db66b40a6",
+          "text": "Travel insurance",
+          "done": true
+        },
+        {
+          "id": "0af8be77b9",
+          "text": "Phone charger & power bank",
+          "done": true
+        },
+        {
+          "id": "46d37bebc8",
+          "text": "Universal adapter",
+          "done": false
+        },
+        {
+          "id": "ded50ac7bd",
+          "text": "Medicines & first-aid",
+          "done": false
+        },
+        {
+          "id": "6cd41c3e15",
+          "text": "Sunscreen",
+          "done": false
+        },
+        {
+          "id": "d24f8e1191",
+          "text": "Comfortable shoes",
+          "done": false
+        },
+        {
+          "id": "86e3071c47",
+          "text": "Reusable water bottle",
+          "done": false
+        }
+      ]
+    },
+    {
+      "id": "4ab6dab48b",
+      "name": "Tokyo Food Trail",
+      "destId": "tokyo",
+      "destination": "Tokyo, Japan",
+      "image": "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?auto=format&fit=crop&w=1200&q=70",
+      "start": "2026-12-26",
+      "end": "2027-01-02",
+      "travelers": 1,
+      "budget": 2400,
+      "currency": "USD",
+      "itinerary": [
+        {
+          "id": "e9b84d2a96",
+          "day": 1,
+          "time": "09:00",
+          "title": "Tsukiji outer market breakfast",
+          "note": ""
+        },
+        {
+          "id": "ffebb03d49",
+          "day": 2,
+          "time": "14:00",
+          "title": "Shibuya & Harajuku",
+          "note": ""
+        }
+      ],
+      "expenses": [
+        {
+          "id": "5e36d84063",
+          "title": "Flights",
+          "category": "Flights",
+          "amount": 720,
+          "date": "2026-10-14"
+        }
+      ],
+      "packing": [
+        {
+          "id": "faf2f7f4b4",
+          "text": "Passport & visa",
+          "done": true
+        },
+        {
+          "id": "bf9810cacf",
+          "text": "Travel insurance",
+          "done": false
+        },
+        {
+          "id": "529f636e97",
+          "text": "Phone charger & power bank",
+          "done": false
+        },
+        {
+          "id": "5aa9086221",
+          "text": "Universal adapter",
+          "done": false
+        },
+        {
+          "id": "73cc5661a2",
+          "text": "Medicines & first-aid",
+          "done": false
+        },
+        {
+          "id": "2db15609c0",
+          "text": "Sunscreen",
+          "done": false
+        },
+        {
+          "id": "12292294a2",
+          "text": "Comfortable shoes",
+          "done": false
+        },
+        {
+          "id": "e37fcbf8ea",
+          "text": "Reusable water bottle",
+          "done": false
+        }
+      ]
+    },
+    {
+      "id": "ced4996dce",
+      "name": "Goa Long Weekend",
+      "destId": "goa",
+      "destination": "Goa, India",
+      "image": "https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?auto=format&fit=crop&w=1200&q=70",
+      "start": "2026-09-07",
+      "end": "2026-09-11",
+      "travelers": 4,
+      "budget": 60000,
+      "currency": "INR",
+      "itinerary": [
+        {
+          "id": "0c8a11286b",
+          "day": 1,
+          "time": "12:00",
+          "title": "Baga beach & shacks",
+          "note": ""
+        }
+      ],
+      "expenses": [
+        {
+          "id": "9ebaf9e8b7",
+          "title": "Train tickets",
+          "category": "Transport",
+          "amount": 9800,
+          "date": "2026-08-23"
+        },
+        {
+          "id": "e8f45f5b99",
+          "title": "Beach resort",
+          "category": "Stay",
+          "amount": 24000,
+          "date": "2026-08-28"
+        },
+        {
+          "id": "4687d916cd",
+          "title": "Seafood dinners",
+          "category": "Food",
+          "amount": 11500,
+          "date": "2026-09-09"
+        },
+        {
+          "id": "a2b08aa946",
+          "title": "Scooter rental",
+          "category": "Transport",
+          "amount": 3200,
+          "date": "2026-09-09"
+        },
+        {
+          "id": "cdc7b37244",
+          "title": "Water sports",
+          "category": "Activities",
+          "amount": 6400,
+          "date": "2026-09-10"
+        }
+      ],
+      "packing": [
+        {
+          "id": "6f12c95b53",
+          "text": "Passport & visa",
+          "done": true
+        },
+        {
+          "id": "cac31965b5",
+          "text": "Travel insurance",
+          "done": true
+        },
+        {
+          "id": "ed4e382c3b",
+          "text": "Phone charger & power bank",
+          "done": true
+        },
+        {
+          "id": "3e1e6e02e9",
+          "text": "Universal adapter",
+          "done": true
+        },
+        {
+          "id": "04a1f58acd",
+          "text": "Medicines & first-aid",
+          "done": true
+        },
+        {
+          "id": "1e3f181393",
+          "text": "Sunscreen",
+          "done": true
+        },
+        {
+          "id": "0703aef3f1",
+          "text": "Comfortable shoes",
+          "done": true
+        },
+        {
+          "id": "73caf7be0a",
+          "text": "Reusable water bottle",
+          "done": true
+        }
+      ]
+    }
+  ]
+}
