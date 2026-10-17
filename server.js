@@ -1,3 +1,6 @@
+
+
+
 require('dotenv').config();
 
 const express = require('express');
@@ -7,14 +10,21 @@ const crypto = require('crypto');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const PUBLIC_DIR = path.join(__dirname, 'public');
 const DATA_DIR = path.join(__dirname, 'data');
 const DB_FILE = path.join(DATA_DIR, 'db.json');
-const PUBLIC_DIR = path.join(__dirname, 'public');
 
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 const SESSION_SECRET = process.env.SESSION_SECRET;
-const LOGIN_EMAIL = (process.env.LOGIN_EMAIL || 'user@example.com').trim().toLowerCase();
-const LOGIN_PASSWORD = process.env.LOGIN_PASSWORD || 'password123';
+
+const LOGIN_EMAIL = IS_PRODUCTION
+  ? String(process.env.LOGIN_EMAIL || '').trim().toLowerCase()
+  : 'mayur@gmail.com';
+
+const LOGIN_PASSWORD = IS_PRODUCTION
+  ? String(process.env.LOGIN_PASSWORD || '')
+  : 'mayur@123';
+
 const COOKIE_NAME = 'wanderly_session';
 const SESSION_DURATION = 24 * 60 * 60;
 
@@ -22,33 +32,152 @@ if (IS_PRODUCTION && (!SESSION_SECRET || SESSION_SECRET.length < 32)) {
   throw new Error('Set SESSION_SECRET to a random secret of at least 32 characters.');
 }
 
+if (IS_PRODUCTION && (!LOGIN_EMAIL || !LOGIN_PASSWORD)) {
+  throw new Error('Set LOGIN_EMAIL and LOGIN_PASSWORD in the deployment environment.');
+}
+
 const SIGNING_SECRET = SESSION_SECRET || crypto.randomBytes(32).toString('hex');
 
 app.disable('x-powered-by');
 app.use(express.json({ limit: '100kb' }));
+app.use(express.urlencoded({ extended: false, limit: '100kb' }));
 
-/* ---------- Static reference data ---------- */
+/* ---------------- HOMEPAGE ---------------- */
 
-const img = (id) =>
+const HOME_CANDIDATES = ['index.html', 'home.html', 'site.html'];
+
+function getPublicHomePath() {
+  for (const filename of HOME_CANDIDATES) {
+    const filePath = path.join(PUBLIC_DIR, filename);
+
+    if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
+      return filePath;
+    }
+  }
+
+  return null;
+}
+
+function sendPublicHome(res) {
+  const homePath = getPublicHomePath();
+
+  res.setHeader('Cache-Control', 'no-store');
+
+  if (homePath) {
+    return res.sendFile(homePath);
+  }
+
+  return res.status(404).send(`
+    <!DOCTYPE html>
+    <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Wanderly</title>
+      </head>
+      <body style="font-family:Arial,sans-serif;padding:40px">
+        <h1>Wanderly</h1>
+        <p>Your login was successful, but the public homepage HTML file
+        was not found.</p>
+        <p>Place your public homepage in the public folder as
+        index.html, home.html, or site.html.</p>
+        <a href="/app.html">Open travel dashboard</a>
+      </body>
+    </html>
+  `);
+}
+
+/* ---------------- DESTINATIONS ---------------- */
+
+const image = (id) =>
   `https://images.unsplash.com/${id}?auto=format&fit=crop&w=1200&q=70`;
 
 const DESTINATIONS = [
-  { id: 'bali', name: 'Bali', country: 'Indonesia', image: img('photo-1537996194471-e657df975ab4'), tags: ['beach', 'culture', 'nature'], daily: { budget: 40, mid: 90, luxury: 250 }, flight: 650, best: 'Apr – Oct', currency: 'IDR', rating: 4.8, blurb: 'Rice terraces, surf breaks and temple sunsets on the Island of the Gods.' },
-  { id: 'paris', name: 'Paris', country: 'France', image: img('photo-1502602898657-3e91760cbb34'), tags: ['city', 'culture', 'luxury'], daily: { budget: 110, mid: 220, luxury: 550 }, flight: 800, best: 'Apr – Jun, Sep – Oct', currency: 'EUR', rating: 4.7, blurb: 'Cafés, museums and golden-hour walks along the Seine.' },
-  { id: 'tokyo', name: 'Tokyo', country: 'Japan', image: img('photo-1540959733332-eab4deabeeaf'), tags: ['city', 'culture', 'adventure'], daily: { budget: 90, mid: 180, luxury: 450 }, flight: 700, best: 'Mar – May, Oct – Nov', currency: 'JPY', rating: 4.9, blurb: 'Neon streets, world-class food and quiet shrines side by side.' },
-  { id: 'santorini', name: 'Santorini', country: 'Greece', image: img('photo-1570077188670-e3a8d69ac5ff'), tags: ['beach', 'luxury', 'culture'], daily: { budget: 100, mid: 210, luxury: 520 }, flight: 850, best: 'May – Oct', currency: 'EUR', rating: 4.8, blurb: 'Whitewashed cliffs, blue domes and caldera sunsets.' },
-  { id: 'dubai', name: 'Dubai', country: 'UAE', image: img('photo-1512453979798-5ea266f8880c'), tags: ['city', 'luxury', 'adventure'], daily: { budget: 100, mid: 210, luxury: 600 }, flight: 400, best: 'Nov – Mar', currency: 'AED', rating: 4.6, blurb: 'Record-breaking skyline, desert safaris and shopping.' },
-  { id: 'newyork', name: 'New York', country: 'USA', image: img('photo-1496442226666-8d4d0e62e6e9'), tags: ['city', 'culture'], daily: { budget: 150, mid: 300, luxury: 700 }, flight: 1000, best: 'Apr – Jun, Sep – Nov', currency: 'USD', rating: 4.6, blurb: 'Broadway lights, Central Park and a slice on every corner.' },
-  { id: 'maldives', name: 'Maldives', country: 'Maldives', image: img('photo-1514282401047-d79a71a590e8'), tags: ['beach', 'luxury', 'nature'], daily: { budget: 130, mid: 300, luxury: 900 }, flight: 600, best: 'Nov – Apr', currency: 'USD', rating: 4.9, blurb: 'Overwater villas, glowing lagoons and reef diving.' },
-  { id: 'switzerland', name: 'Swiss Alps', country: 'Switzerland', image: img('photo-1530122037265-a5f1f91d3b99'), tags: ['nature', 'adventure', 'luxury'], daily: { budget: 150, mid: 290, luxury: 650 }, flight: 900, best: 'Jun – Sep, Dec – Mar', currency: 'CHF', rating: 4.8, blurb: 'Scenic trains, alpine lakes and storybook villages.' },
-  { id: 'goa', name: 'Goa', country: 'India', image: img('photo-1512343879784-a960bf40e7f2'), tags: ['beach', 'culture'], daily: { budget: 25, mid: 55, luxury: 160 }, flight: 120, best: 'Nov – Feb', currency: 'INR', rating: 4.5, blurb: 'Sunny beaches, Portuguese heritage and legendary seafood.' },
-  { id: 'jaipur', name: 'Jaipur', country: 'India', image: img('photo-1477587458883-47145ed94245'), tags: ['culture', 'city'], daily: { budget: 22, mid: 50, luxury: 150 }, flight: 90, best: 'Oct – Mar', currency: 'INR', rating: 4.6, blurb: 'The Pink City: forts, palaces and bustling bazaars.' }
+  {
+    id: 'bali', name: 'Bali', country: 'Indonesia',
+    image: image('photo-1537996194471-e657df975ab4'),
+    tags: ['beach', 'culture', 'nature'],
+    daily: { budget: 40, mid: 90, luxury: 250 },
+    flight: 650, best: 'Apr – Oct', currency: 'IDR', rating: 4.8,
+    blurb: 'Rice terraces, surf breaks and temple sunsets.'
+  },
+  {
+    id: 'paris', name: 'Paris', country: 'France',
+    image: image('photo-1502602898657-3e91760cbb34'),
+    tags: ['city', 'culture', 'luxury'],
+    daily: { budget: 110, mid: 220, luxury: 550 },
+    flight: 800, best: 'Apr – Jun, Sep – Oct', currency: 'EUR', rating: 4.7,
+    blurb: 'Cafés, museums and walks along the Seine.'
+  },
+  {
+    id: 'tokyo', name: 'Tokyo', country: 'Japan',
+    image: image('photo-1540959733332-eab4deabeeaf'),
+    tags: ['city', 'culture', 'adventure'],
+    daily: { budget: 90, mid: 180, luxury: 450 },
+    flight: 700, best: 'Mar – May, Oct – Nov', currency: 'JPY', rating: 4.9,
+    blurb: 'Neon streets, incredible food and quiet shrines.'
+  },
+  {
+    id: 'santorini', name: 'Santorini', country: 'Greece',
+    image: image('photo-1570077188670-e3a8d69ac5ff'),
+    tags: ['beach', 'luxury', 'culture'],
+    daily: { budget: 100, mid: 210, luxury: 520 },
+    flight: 850, best: 'May – Oct', currency: 'EUR', rating: 4.8,
+    blurb: 'Whitewashed cliffs and caldera sunsets.'
+  },
+  {
+    id: 'dubai', name: 'Dubai', country: 'UAE',
+    image: image('photo-1512453979798-5ea266f8880c'),
+    tags: ['city', 'luxury', 'adventure'],
+    daily: { budget: 100, mid: 210, luxury: 600 },
+    flight: 400, best: 'Nov – Mar', currency: 'AED', rating: 4.6,
+    blurb: 'A spectacular skyline and desert adventures.'
+  },
+  {
+    id: 'newyork', name: 'New York', country: 'USA',
+    image: image('photo-1496442226666-8d4d0e62e6e9'),
+    tags: ['city', 'culture'],
+    daily: { budget: 150, mid: 300, luxury: 700 },
+    flight: 1000, best: 'Apr – Jun, Sep – Nov', currency: 'USD', rating: 4.6,
+    blurb: 'Broadway, Central Park and famous city streets.'
+  },
+  {
+    id: 'maldives', name: 'Maldives', country: 'Maldives',
+    image: image('photo-1514282401047-d79a71a590e8'),
+    tags: ['beach', 'luxury', 'nature'],
+    daily: { budget: 130, mid: 300, luxury: 900 },
+    flight: 600, best: 'Nov – Apr', currency: 'USD', rating: 4.9,
+    blurb: 'Overwater villas and beautiful lagoons.'
+  },
+  {
+    id: 'switzerland', name: 'Swiss Alps', country: 'Switzerland',
+    image: image('photo-1530122037265-a5f1f91d3b99'),
+    tags: ['nature', 'adventure', 'luxury'],
+    daily: { budget: 150, mid: 290, luxury: 650 },
+    flight: 900, best: 'Jun – Sep, Dec – Mar', currency: 'CHF', rating: 4.8,
+    blurb: 'Alpine lakes, mountain views and scenic trains.'
+  },
+  {
+    id: 'goa', name: 'Goa', country: 'India',
+    image: image('photo-1512343879784-a960bf40e7f2'),
+    tags: ['beach', 'culture'],
+    daily: { budget: 25, mid: 55, luxury: 160 },
+    flight: 120, best: 'Nov – Feb', currency: 'INR', rating: 4.5,
+    blurb: 'Sunny beaches and Portuguese heritage.'
+  },
+  {
+    id: 'jaipur', name: 'Jaipur', country: 'India',
+    image: image('photo-1477587458883-47145ed94245'),
+    tags: ['culture', 'city'],
+    daily: { budget: 22, mid: 50, luxury: 150 },
+    flight: 90, best: 'Oct – Mar', currency: 'INR', rating: 4.6,
+    blurb: 'Historic forts, palaces and bustling bazaars.'
+  }
 ];
 
 const RATES = {
   USD: 1, INR: 83.5, EUR: 0.92, GBP: 0.79, JPY: 150,
-  AED: 3.67, THB: 35.8, IDR: 15600, CHF: 0.88,
-  AUD: 1.52, SGD: 1.34
+  AED: 3.67, THB: 35.8, IDR: 15600, CHF: 0.88, AUD: 1.52, SGD: 1.34
 };
 
 const CATEGORIES = [
@@ -66,36 +195,30 @@ const DEFAULT_PACKING = [
   'Reusable water bottle'
 ];
 
-/* ---------- JSON data store ---------- */
+/* ---------------- DATA STORE ---------------- */
 
 const uid = () => crypto.randomBytes(5).toString('hex');
 
-const dayOffset = (n) =>
-  new Date(Date.now() + n * 864e5).toISOString().slice(0, 10);
+const dayOffset = (days) =>
+  new Date(Date.now() + days * 86400000).toISOString().slice(0, 10);
 
 function seed() {
-  const dest = (id) => DESTINATIONS.find((d) => d.id === id);
+  const destination = (id) => DESTINATIONS.find((item) => item.id === id);
 
-  const pack = (done = 0) =>
-    DEFAULT_PACKING.map((text, i) => ({
+  const packing = (completed = 0) =>
+    DEFAULT_PACKING.map((text, index) => ({
       id: uid(),
       text,
-      done: i < done
+      done: index < completed
     }));
 
   return {
     trips: [
       {
-        id: uid(),
-        name: 'Bali Reset',
-        destId: 'bali',
-        destination: 'Bali, Indonesia',
-        image: dest('bali').image,
-        start: dayOffset(21),
-        end: dayOffset(28),
-        travelers: 2,
-        budget: 3200,
-        currency: 'USD',
+        id: uid(), name: 'Bali Reset', destId: 'bali',
+        destination: 'Bali, Indonesia', image: destination('bali').image,
+        start: dayOffset(21), end: dayOffset(28), travelers: 2,
+        budget: 3200, currency: 'USD',
         itinerary: [
           { id: uid(), day: 1, time: '15:00', title: 'Check in at Ubud villa', note: 'Rice-terrace view room' },
           { id: uid(), day: 2, time: '06:00', title: 'Sunrise at Mount Batur', note: 'Guided trek, bring a jacket' },
@@ -107,19 +230,13 @@ function seed() {
           { id: uid(), title: 'Villa deposit', category: 'Stay', amount: 480, date: dayOffset(-8) },
           { id: uid(), title: 'Travel insurance', category: 'Other', amount: 64, date: dayOffset(-5) }
         ],
-        packing: pack(3)
+        packing: packing(3)
       },
       {
-        id: uid(),
-        name: 'Tokyo Food Trail',
-        destId: 'tokyo',
-        destination: 'Tokyo, Japan',
-        image: dest('tokyo').image,
-        start: dayOffset(70),
-        end: dayOffset(77),
-        travelers: 1,
-        budget: 2400,
-        currency: 'USD',
+        id: uid(), name: 'Tokyo Food Trail', destId: 'tokyo',
+        destination: 'Tokyo, Japan', image: destination('tokyo').image,
+        start: dayOffset(70), end: dayOffset(77), travelers: 1,
+        budget: 2400, currency: 'USD',
         itinerary: [
           { id: uid(), day: 1, time: '09:00', title: 'Tsukiji outer market breakfast', note: '' },
           { id: uid(), day: 2, time: '14:00', title: 'Shibuya & Harajuku', note: '' }
@@ -127,19 +244,13 @@ function seed() {
         expenses: [
           { id: uid(), title: 'Flights', category: 'Flights', amount: 720, date: dayOffset(-3) }
         ],
-        packing: pack(1)
+        packing: packing(1)
       },
       {
-        id: uid(),
-        name: 'Goa Long Weekend',
-        destId: 'goa',
-        destination: 'Goa, India',
-        image: dest('goa').image,
-        start: dayOffset(-40),
-        end: dayOffset(-36),
-        travelers: 4,
-        budget: 60000,
-        currency: 'INR',
+        id: uid(), name: 'Goa Long Weekend', destId: 'goa',
+        destination: 'Goa, India', image: destination('goa').image,
+        start: dayOffset(-40), end: dayOffset(-36), travelers: 4,
+        budget: 60000, currency: 'INR',
         itinerary: [
           { id: uid(), day: 1, time: '12:00', title: 'Baga beach & shacks', note: '' }
         ],
@@ -150,7 +261,7 @@ function seed() {
           { id: uid(), title: 'Scooter rental', category: 'Transport', amount: 3200, date: dayOffset(-38) },
           { id: uid(), title: 'Water sports', category: 'Activities', amount: 6400, date: dayOffset(-37) }
         ],
-        packing: pack(8)
+        packing: packing(8)
       }
     ]
   };
@@ -168,28 +279,26 @@ function load() {
   return JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
 }
 
-const save = (db) =>
+function save(db) {
   fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2));
-
-const convert = (amt, from, to) =>
-  (amt / (RATES[from] || 1)) * (RATES[to] || 1);
-
-const bad = (res, msg, code = 400) =>
-  res.status(code).json({ error: msg });
-
-const num = (v) =>
-  Number.isFinite(Number(v)) ? Number(v) : NaN;
-
-const str = (v, max = 120) =>
-  String(v ?? '').trim().slice(0, max);
-
-function findTrip(db, id) {
-  return db.trips.find((t) => t.id === id);
 }
 
-/* ---------- Authentication helpers ---------- */
+const convert = (amount, from, to) =>
+  (amount / (RATES[from] || 1)) * (RATES[to] || 1);
 
-// Sign a short-lived session token using HMAC.
+const bad = (res, message, status = 400) =>
+  res.status(status).json({ error: message });
+
+const num = (value) =>
+  Number.isFinite(Number(value)) ? Number(value) : NaN;
+
+const str = (value, max = 120) =>
+  String(value ?? '').trim().slice(0, max);
+
+const findTrip = (db, id) => db.trips.find((trip) => trip.id === id);
+
+/* ---------------- AUTHENTICATION ---------------- */
+
 function createSessionToken(email) {
   const payload = Buffer.from(JSON.stringify({
     email,
@@ -217,13 +326,7 @@ function verifySessionToken(token) {
     .update(payload)
     .digest();
 
-  let supplied;
-
-  try {
-    supplied = Buffer.from(signature, 'base64url');
-  } catch {
-    return null;
-  }
+  const supplied = Buffer.from(signature, 'base64url');
 
   if (
     supplied.length !== expected.length ||
@@ -233,9 +336,7 @@ function verifySessionToken(token) {
   }
 
   try {
-    const data = JSON.parse(
-      Buffer.from(payload, 'base64url').toString('utf8')
-    );
+    const data = JSON.parse(Buffer.from(payload, 'base64url').toString());
 
     if (
       typeof data.email !== 'string' ||
@@ -252,16 +353,14 @@ function verifySessionToken(token) {
 }
 
 function getCookie(req, name) {
-  const cookieHeader = req.headers.cookie || '';
+  const cookies = String(req.headers.cookie || '').split(';');
 
-  for (const part of cookieHeader.split(';')) {
-    const index = part.indexOf('=');
+  for (const item of cookies) {
+    const index = item.indexOf('=');
     if (index < 0) continue;
 
-    const key = part.slice(0, index).trim();
-
-    if (key === name) {
-      return part.slice(index + 1).trim();
+    if (item.slice(0, index).trim() === name) {
+      return item.slice(index + 1).trim();
     }
   }
 
@@ -277,64 +376,66 @@ function isAuthenticated(req) {
 }
 
 function requireAuth(req, res, next) {
-  if (!isAuthenticated(req)) {
-    if (req.path.startsWith('/api/')) {
-      return res.status(401).json({
-        error: 'Please log in to continue.',
-        loginRequired: true
-      });
-    }
+  if (isAuthenticated(req)) return next();
 
-    return res.redirect('/login');
-  }
-
-  next();
-}
-
-function sendLoginPage(res) {
-  return res.sendFile(path.join(PUBLIC_DIR, 'login.html'));
-}
-
-/* ---------- Login and logout ---------- */
-
-// The login page is public.
-app.get('/login', (req, res) => {
-  if (isAuthenticated(req)) {
-    return res.redirect('/app.html');
-  }
-
-  return sendLoginPage(res);
-});
-
-// Login API.
-app.post('/api/login', (req, res) => {
-  const email = str(req.body && req.body.email, 160).toLowerCase();
-  const password = String((req.body && req.body.password) ?? '');
-
-  const emailBuffer = Buffer.from(email);
-  const expectedEmailBuffer = Buffer.from(LOGIN_EMAIL);
-  const passwordBuffer = Buffer.from(password);
-  const expectedPasswordBuffer = Buffer.from(LOGIN_PASSWORD);
-
-  const emailMatches =
-    emailBuffer.length === expectedEmailBuffer.length &&
-    crypto.timingSafeEqual(emailBuffer, expectedEmailBuffer);
-
-  const passwordMatches =
-    passwordBuffer.length === expectedPasswordBuffer.length &&
-    crypto.timingSafeEqual(passwordBuffer, expectedPasswordBuffer);
-
-  if (!emailMatches || !passwordMatches) {
+  if (req.path.startsWith('/api/')) {
     return res.status(401).json({
       success: false,
-      message: 'Invalid email or password.'
+      error: 'Please log in to continue.',
+      loginRequired: true
     });
   }
 
-  const token = createSessionToken(email);
+  return res.redirect('/login');
+}
+
+function sendLoginPage(res) {
+  const loginPath = path.join(PUBLIC_DIR, 'login.html');
 
   res.setHeader('Cache-Control', 'no-store');
 
+  if (!fs.existsSync(loginPath)) {
+    return res.status(500).send(
+      'Login page not found. Make sure public/login.html exists.'
+    );
+  }
+
+  return res.sendFile(loginPath);
+}
+
+/* ---------------- LOGIN ROUTES ---------------- */
+
+// FIX: Always show the login page, even if a session already exists.
+app.get('/login', (req, res) => {
+  return sendLoginPage(res);
+});
+
+app.post('/api/login', (req, res) => {
+  const body = req.body || {};
+
+  const email = String(
+    body.email ?? body.username ?? body.login ?? body.userEmail ?? ''
+  ).trim().toLowerCase();
+
+  const password = String(
+    body.password ??
+    body.pass ??
+    body.pwd ??
+    body.loginPassword ??
+    body.userPassword ??
+    ''
+  );
+
+  if (email !== LOGIN_EMAIL || password !== LOGIN_PASSWORD) {
+    return res.status(401).json({
+      success: false,
+      message: 'Incorrect email or password.'
+    });
+  }
+
+  const token = createSessionToken(LOGIN_EMAIL);
+
+  res.setHeader('Cache-Control', 'no-store');
   res.setHeader('Set-Cookie', [
     `${COOKIE_NAME}=${token}`,
     'HttpOnly',
@@ -347,23 +448,20 @@ app.post('/api/login', (req, res) => {
   return res.json({
     success: true,
     message: 'Login successful.',
-    redirect: '/app.html'
+    redirect: '/'
   });
 });
 
-// Check whether the current browser has a valid session.
 app.get('/api/auth/status', (req, res) => {
   const session = getSession(req);
 
   res.setHeader('Cache-Control', 'no-store');
-
   res.json({
     authenticated: Boolean(session),
     email: session ? session.email : null
   });
 });
 
-// Logout.
 app.post('/api/logout', (req, res) => {
   res.setHeader('Set-Cookie', [
     `${COOKIE_NAME}=`,
@@ -374,51 +472,71 @@ app.post('/api/logout', (req, res) => {
     ...(IS_PRODUCTION ? ['Secure'] : [])
   ].join('; '));
 
-  res.json({
-    success: true,
-    redirect: '/login'
-  });
+  res.json({ success: true, redirect: '/login' });
 });
 
-/* ---------- Website access control ---------- */
+/* ---------------- PAGE ACCESS ---------------- */
 
-// Visitors must log in before opening the main website.
+// Visitors must log in before accessing the public homepage.
 app.get('/', (req, res) => {
   if (!isAuthenticated(req)) {
     return res.redirect('/login');
   }
 
+  return sendPublicHome(res);
+});
+
+app.get('/app.html', requireAuth, (req, res) => {
+  res.setHeader('Cache-Control', 'no-store');
   return res.sendFile(path.join(PUBLIC_DIR, 'app.html'));
 });
 
-// Protect the main application page even if someone types its URL.
-app.get('/app.html', requireAuth, (req, res) => {
-  res.setHeader('Cache-Control', 'no-store');
-  res.sendFile(path.join(PUBLIC_DIR, 'app.html'));
-});
-
-// Protect the dashboard alias.
 app.get('/dashboard', requireAuth, (req, res) => {
-  res.redirect('/app.html');
+  return res.redirect('/app.html');
 });
 
-// Block direct access to private HTML files.
-app.use((req, res, next) => {
-  if (
-    req.method === 'GET' &&
-    req.path.endsWith('.html') &&
-    !['/login.html', '/404.html'].includes(req.path)
-  ) {
-    return requireAuth(req, res, next);
+/* ---------------- PUBLIC APIs ---------------- */
+
+app.get('/api/destinations', (req, res) => {
+  res.json(DESTINATIONS);
+});
+
+app.get('/api/destinations/:id', (req, res) => {
+  const destination = DESTINATIONS.find((item) => item.id === req.params.id);
+
+  if (!destination) return bad(res, 'Destination not found', 404);
+
+  const related = DESTINATIONS
+    .filter((item) =>
+      item.id !== destination.id &&
+      item.tags.some((tag) => destination.tags.includes(tag))
+    )
+    .slice(0, 3);
+
+  res.json({ ...destination, related });
+});
+
+app.post('/api/subscribe', (req, res) => {
+  const email = str(req.body?.email, 160).toLowerCase();
+
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return bad(res, 'Please enter a valid email address.');
   }
 
-  next();
+  const db = load();
+  db.subscribers = db.subscribers || [];
+
+  if (!db.subscribers.some((item) => item.email === email)) {
+    db.subscribers.push({ email, at: new Date().toISOString() });
+  }
+
+  save(db);
+  res.status(201).json({ success: true });
 });
 
-// Every application API below this point requires login.
-app.use('/api', requireAuth);
+/* ---------------- PRIVATE APIs ---------------- */
 
-/* ---------- Application API ---------- */
+app.use('/api', requireAuth);
 
 app.get('/api/bootstrap', (req, res) => {
   const db = load();
@@ -433,216 +551,200 @@ app.get('/api/bootstrap', (req, res) => {
 
 app.post('/api/trips', (req, res) => {
   const db = load();
-  const b = req.body || {};
-  const dest = DESTINATIONS.find((d) => d.id === b.destId);
-  const name = str(b.name);
-  const budget = num(b.budget);
+  const body = req.body || {};
+  const destination = DESTINATIONS.find((item) => item.id === body.destId);
+  const name = str(body.name);
+  const budget = num(body.budget);
 
-  if (!name) return bad(res, 'Trip name is required');
-  if (!b.start || !b.end || b.end < b.start) {
-    return bad(res, 'Please choose valid dates');
+  if (!name) return bad(res, 'Trip name is required.');
+  if (!body.start || !body.end || body.end < body.start) {
+    return bad(res, 'Please choose valid dates.');
   }
-  if (!(budget >= 0)) return bad(res, 'Budget must be a number');
+  if (!(budget >= 0)) return bad(res, 'Budget must be a valid number.');
 
   const trip = {
     id: uid(),
     name,
-    destId: dest ? dest.id : 'custom',
-    destination: dest
-      ? `${dest.name}, ${dest.country}`
-      : str(b.destination) || 'Custom destination',
-    image: dest ? dest.image : (str(b.image, 400) || DESTINATIONS[0].image),
-    start: b.start,
-    end: b.end,
-    travelers: Math.max(1, Math.round(num(b.travelers)) || 1),
+    destId: destination ? destination.id : 'custom',
+    destination: destination
+      ? `${destination.name}, ${destination.country}`
+      : str(body.destination) || 'Custom destination',
+    image: destination
+      ? destination.image
+      : str(body.image, 400) || DESTINATIONS[0].image,
+    start: body.start,
+    end: body.end,
+    travelers: Math.max(1, Math.round(num(body.travelers)) || 1),
     budget,
-    currency: RATES[b.currency] ? b.currency : 'USD',
+    currency: RATES[body.currency] ? body.currency : 'USD',
     itinerary: [],
     expenses: [],
     packing: DEFAULT_PACKING.map((text) => ({
-      id: uid(),
-      text,
-      done: false
+      id: uid(), text, done: false
     }))
   };
 
   db.trips.unshift(trip);
   save(db);
-
   res.status(201).json(trip);
 });
 
 app.put('/api/trips/:id', (req, res) => {
   const db = load();
-  const t = findTrip(db, req.params.id);
+  const trip = findTrip(db, req.params.id);
 
-  if (!t) return bad(res, 'Trip not found', 404);
+  if (!trip) return bad(res, 'Trip not found.', 404);
 
-  const b = req.body || {};
+  const body = req.body || {};
 
-  if (b.name !== undefined) t.name = str(b.name) || t.name;
-  if (b.budget !== undefined && num(b.budget) >= 0) {
-    t.budget = num(b.budget);
-  }
-  if (b.start) t.start = b.start;
-  if (b.end) t.end = b.end;
-  if (b.travelers) {
-    t.travelers = Math.max(1, Math.round(num(b.travelers)) || t.travelers);
+  if (body.name !== undefined) trip.name = str(body.name) || trip.name;
+  if (body.budget !== undefined && num(body.budget) >= 0) trip.budget = num(body.budget);
+  if (body.start) trip.start = body.start;
+  if (body.end) trip.end = body.end;
+
+  if (body.travelers !== undefined) {
+    trip.travelers = Math.max(1, Math.round(num(body.travelers)) || 1);
   }
 
   save(db);
-  res.json(t);
+  res.json(trip);
 });
 
 app.delete('/api/trips/:id', (req, res) => {
   const db = load();
-  const i = db.trips.findIndex((t) => t.id === req.params.id);
+  const index = db.trips.findIndex((trip) => trip.id === req.params.id);
 
-  if (i < 0) return bad(res, 'Trip not found', 404);
+  if (index < 0) return bad(res, 'Trip not found.', 404);
 
-  db.trips.splice(i, 1);
+  db.trips.splice(index, 1);
   save(db);
-
-  res.json({ ok: true });
+  res.json({ success: true });
 });
 
 app.post('/api/trips/:id/expenses', (req, res) => {
   const db = load();
-  const t = findTrip(db, req.params.id);
+  const trip = findTrip(db, req.params.id);
 
-  if (!t) return bad(res, 'Trip not found', 404);
+  if (!trip) return bad(res, 'Trip not found.', 404);
 
-  const b = req.body || {};
-  const amount = num(b.amount);
+  const body = req.body || {};
+  const amount = num(body.amount);
 
-  if (!str(b.title)) return bad(res, 'Give the expense a title');
-  if (!(amount > 0)) return bad(res, 'Amount must be greater than 0');
+  if (!str(body.title)) return bad(res, 'Expense title is required.');
+  if (!(amount > 0)) return bad(res, 'Amount must be greater than zero.');
 
-  const e = {
+  trip.expenses.unshift({
     id: uid(),
-    title: str(b.title),
-    category: CATEGORIES.includes(b.category) ? b.category : 'Other',
+    title: str(body.title),
+    category: CATEGORIES.includes(body.category) ? body.category : 'Other',
     amount,
-    date: b.date || dayOffset(0)
-  };
+    date: body.date || dayOffset(0)
+  });
 
-  t.expenses.unshift(e);
   save(db);
-
-  res.status(201).json(t);
+  res.status(201).json(trip);
 });
 
 app.delete('/api/trips/:id/expenses/:eid', (req, res) => {
   const db = load();
-  const t = findTrip(db, req.params.id);
+  const trip = findTrip(db, req.params.id);
 
-  if (!t) return bad(res, 'Trip not found', 404);
+  if (!trip) return bad(res, 'Trip not found.', 404);
 
-  t.expenses = t.expenses.filter((e) => e.id !== req.params.eid);
-
+  trip.expenses = trip.expenses.filter((item) => item.id !== req.params.eid);
   save(db);
-  res.json(t);
+  res.json(trip);
 });
 
 app.post('/api/trips/:id/itinerary', (req, res) => {
   const db = load();
-  const t = findTrip(db, req.params.id);
+  const trip = findTrip(db, req.params.id);
 
-  if (!t) return bad(res, 'Trip not found', 404);
+  if (!trip) return bad(res, 'Trip not found.', 404);
 
-  const b = req.body || {};
+  const body = req.body || {};
+  if (!str(body.title)) return bad(res, 'Activity title is required.');
 
-  if (!str(b.title)) return bad(res, 'Activity title is required');
-
-  t.itinerary.push({
+  trip.itinerary.push({
     id: uid(),
-    day: Math.max(1, Math.round(num(b.day)) || 1),
-    time: str(b.time, 5) || '09:00',
-    title: str(b.title),
-    note: str(b.note, 240)
+    day: Math.max(1, Math.round(num(body.day)) || 1),
+    time: str(body.time, 5) || '09:00',
+    title: str(body.title),
+    note: str(body.note, 240)
   });
 
-  t.itinerary.sort((a, c) =>
-    a.day - c.day || a.time.localeCompare(c.time)
-  );
-
+  trip.itinerary.sort((a, b) => a.day - b.day || a.time.localeCompare(b.time));
   save(db);
-  res.status(201).json(t);
+  res.status(201).json(trip);
 });
 
 app.delete('/api/trips/:id/itinerary/:iid', (req, res) => {
   const db = load();
-  const t = findTrip(db, req.params.id);
+  const trip = findTrip(db, req.params.id);
 
-  if (!t) return bad(res, 'Trip not found', 404);
+  if (!trip) return bad(res, 'Trip not found.', 404);
 
-  t.itinerary = t.itinerary.filter((i) => i.id !== req.params.iid);
-
+  trip.itinerary = trip.itinerary.filter((item) => item.id !== req.params.iid);
   save(db);
-  res.json(t);
+  res.json(trip);
 });
 
 app.post('/api/trips/:id/packing', (req, res) => {
   const db = load();
-  const t = findTrip(db, req.params.id);
+  const trip = findTrip(db, req.params.id);
 
-  if (!t) return bad(res, 'Trip not found', 404);
-  if (!str(req.body && req.body.text)) {
-    return bad(res, 'Item text is required');
-  }
+  if (!trip) return bad(res, 'Trip not found.', 404);
+  if (!str(req.body?.text)) return bad(res, 'Packing item text is required.');
 
-  t.packing.push({
+  trip.packing.push({
     id: uid(),
     text: str(req.body.text),
     done: false
   });
 
   save(db);
-  res.status(201).json(t);
+  res.status(201).json(trip);
 });
 
 app.patch('/api/trips/:id/packing/:pid', (req, res) => {
   const db = load();
-  const t = findTrip(db, req.params.id);
+  const trip = findTrip(db, req.params.id);
 
-  if (!t) return bad(res, 'Trip not found', 404);
+  if (!trip) return bad(res, 'Trip not found.', 404);
 
-  const p = t.packing.find((x) => x.id === req.params.pid);
+  const item = trip.packing.find((entry) => entry.id === req.params.pid);
+  if (!item) return bad(res, 'Packing item not found.', 404);
 
-  if (!p) return bad(res, 'Item not found', 404);
-
-  p.done = !!(req.body && req.body.done);
-
+  item.done = Boolean(req.body?.done);
   save(db);
-  res.json(t);
+  res.json(trip);
 });
 
 app.delete('/api/trips/:id/packing/:pid', (req, res) => {
   const db = load();
-  const t = findTrip(db, req.params.id);
+  const trip = findTrip(db, req.params.id);
 
-  if (!t) return bad(res, 'Trip not found', 404);
+  if (!trip) return bad(res, 'Trip not found.', 404);
 
-  t.packing = t.packing.filter((x) => x.id !== req.params.pid);
-
+  trip.packing = trip.packing.filter((item) => item.id !== req.params.pid);
   save(db);
-  res.json(t);
+  res.json(trip);
 });
 
-/* ---------- Smart budget estimator ---------- */
+/* ---------------- BUDGET ESTIMATOR ---------------- */
 
 app.post('/api/estimate', (req, res) => {
-  const b = req.body || {};
-  const dest = DESTINATIONS.find((d) => d.id === b.destId);
+  const body = req.body || {};
+  const destination = DESTINATIONS.find((item) => item.id === body.destId);
 
-  if (!dest) return bad(res, 'Pick a destination');
+  if (!destination) return bad(res, 'Choose a destination.');
 
-  const days = Math.min(60, Math.max(1, Math.round(num(b.days)) || 0));
-  const travelers = Math.min(20, Math.max(1, Math.round(num(b.travelers)) || 1));
+  const days = Math.min(60, Math.max(1, Math.round(num(body.days)) || 1));
+  const travelers = Math.min(20, Math.max(1, Math.round(num(body.travelers)) || 1));
 
-  const calc = (style) => {
-    const daily = dest.daily[style];
-    const flightMult = { budget: 0.85, mid: 1, luxury: 2.1 }[style];
+  const calculate = (style) => {
+    const daily = destination.daily[style];
+    const flightMultiplier = { budget: 0.85, mid: 1, luxury: 2.1 }[style];
 
     const split = {
       Stay: 0.4,
@@ -653,14 +755,14 @@ app.post('/api/estimate', (req, res) => {
     };
 
     const breakdown = {
-      Flights: Math.round(dest.flight * flightMult * travelers)
+      Flights: Math.round(destination.flight * flightMultiplier * travelers)
     };
 
-    Object.entries(split).forEach(([k, v]) => {
-      breakdown[k] = Math.round(daily * v * days * travelers);
-    });
+    for (const [category, percentage] of Object.entries(split)) {
+      breakdown[category] = Math.round(daily * percentage * days * travelers);
+    }
 
-    const total = Object.values(breakdown).reduce((a, c) => a + c, 0);
+    const total = Object.values(breakdown).reduce((sum, value) => sum + value, 0);
 
     return {
       breakdown,
@@ -670,33 +772,31 @@ app.post('/api/estimate', (req, res) => {
     };
   };
 
-  const style = ['budget', 'mid', 'luxury'].includes(b.style) ? b.style : 'mid';
+  const style = ['budget', 'mid', 'luxury'].includes(body.style) ? body.style : 'mid';
 
   const all = {
-    budget: calc('budget'),
-    mid: calc('mid'),
-    luxury: calc('luxury')
+    budget: calculate('budget'),
+    mid: calculate('mid'),
+    luxury: calculate('luxury')
   };
 
   const tips = [];
 
-  if (dest.tags.includes('beach')) {
-    tips.push('Book beachfront stays 2–3 months ahead for the best rates.');
+  if (destination.tags.includes('beach')) {
+    tips.push('Book beachfront stays early for better prices.');
   }
 
-  if (days >= 7) {
-    tips.push('Weekly stays often unlock 10–20% discounts on rentals.');
-  }
+  if (days >= 7) tips.push('Weekly stays may offer discounts.');
 
   if (travelers >= 3) {
-    tips.push('Split costs on villas and private transfers to save per person.');
+    tips.push('Sharing accommodation and transfers can lower per-person costs.');
   }
 
-  tips.push(`Best time to go: ${dest.best}. Shoulder months are usually cheaper.`);
-  tips.push('Set aside ~10% of your budget as a buffer for surprises.');
+  tips.push(`Best time to visit: ${destination.best}.`);
+  tips.push('Keep around 10% of your budget for unexpected costs.');
 
   res.json({
-    destination: dest,
+    destination,
     days,
     travelers,
     style,
@@ -711,7 +811,7 @@ app.post('/api/estimate', (req, res) => {
   });
 });
 
-/* ---------- Currency converter ---------- */
+/* ---------------- CURRENCY CONVERTER ---------------- */
 
 app.get('/api/convert', (req, res) => {
   const amount = num(req.query.amount);
@@ -719,7 +819,7 @@ app.get('/api/convert', (req, res) => {
   const to = String(req.query.to || 'USD').toUpperCase();
 
   if (!(amount >= 0) || !RATES[from] || !RATES[to]) {
-    return bad(res, 'Invalid conversion request');
+    return bad(res, 'Invalid currency conversion request.');
   }
 
   res.json({
@@ -731,128 +831,90 @@ app.get('/api/convert', (req, res) => {
   });
 });
 
-/* ---------- Expense summary ---------- */
+/* ---------------- EXPENSE SUMMARY ---------------- */
 
 app.get('/api/summary', (req, res) => {
   const db = load();
-  const cur = RATES[req.query.currency] ? req.query.currency : 'USD';
+  const currency = RATES[req.query.currency] ? req.query.currency : 'USD';
 
   let totalBudget = 0;
   let totalSpent = 0;
 
-  const byCat = {};
+  const byCategory = {};
   const recent = [];
 
-  const trips = db.trips.map((t) => {
-    const spent = t.expenses.reduce((a, e) => a + e.amount, 0);
-    const b = convert(t.budget, t.currency, cur);
-    const s = convert(spent, t.currency, cur);
+  const trips = db.trips.map((trip) => {
+    const spent = trip.expenses.reduce((sum, expense) => sum + expense.amount, 0);
+    const budgetConverted = convert(trip.budget, trip.currency, currency);
+    const spentConverted = convert(spent, trip.currency, currency);
 
-    totalBudget += b;
-    totalSpent += s;
+    totalBudget += budgetConverted;
+    totalSpent += spentConverted;
 
-    t.expenses.forEach((e) => {
-      const v = convert(e.amount, t.currency, cur);
+    trip.expenses.forEach((expense) => {
+      const amount = convert(expense.amount, trip.currency, currency);
 
-      byCat[e.category] = (byCat[e.category] || 0) + v;
+      byCategory[expense.category] =
+        (byCategory[expense.category] || 0) + amount;
 
       recent.push({
-        ...e,
-        amount: v,
-        trip: t.name,
-        tripId: t.id
+        ...expense,
+        amount,
+        trip: trip.name,
+        tripId: trip.id
       });
     });
 
     return {
-      id: t.id,
-      name: t.name,
-      budget: b,
-      spent: s
+      id: trip.id,
+      name: trip.name,
+      budget: budgetConverted,
+      spent: spentConverted
     };
   });
 
-  recent.sort((a, c) => String(c.date).localeCompare(String(a.date)));
+  recent.sort((a, b) => String(b.date).localeCompare(String(a.date)));
 
   res.json({
-    currency: cur,
+    currency,
     totalBudget,
     totalSpent,
     remaining: totalBudget - totalSpent,
     tripCount: db.trips.length,
-    byCategory: Object.entries(byCat)
+    byCategory: Object.entries(byCategory)
       .map(([category, amount]) => ({ category, amount }))
-      .sort((a, c) => c.amount - a.amount),
+      .sort((a, b) => b.amount - a.amount),
     trips,
     recent: recent.slice(0, 6)
   });
 });
 
-/* ---------- Public website endpoints ---------- */
+/* ---------------- STATIC FILES AND ERRORS ---------------- */
 
-// These remain behind login because the application API
-// authentication middleware is above this section.
-
-app.get('/api/destinations', (req, res) => {
-  res.json(DESTINATIONS);
-});
-
-app.get('/api/destinations/:id', (req, res) => {
-  const d = DESTINATIONS.find((x) => x.id === req.params.id);
-
-  if (!d) return bad(res, 'Destination not found', 404);
-
-  const related = DESTINATIONS
-    .filter((x) => x.id !== d.id && x.tags.some((t) => d.tags.includes(t)))
-    .slice(0, 3);
-
-  res.json({ ...d, related });
-});
-
-app.post('/api/subscribe', (req, res) => {
-  const email = str(req.body && req.body.email, 160).toLowerCase();
-
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    return bad(res, 'Please enter a valid email address');
-  }
-
-  const db = load();
-
-  db.subscribers = db.subscribers || [];
-
-  if (!db.subscribers.some((s) => s.email === email)) {
-    db.subscribers.push({
-      email,
-      at: new Date().toISOString()
-    });
-  }
-
-  save(db);
-
-  res.status(201).json({ ok: true });
-});
-
-/* ---------- 404 and static files ---------- */
-
-// Only serve the public directory after access-control routes.
-// The login page must exist at public/login.html.
+// Static middleware comes after explicit page routes so it cannot
+// override the login and homepage routing.
 app.use(express.static(PUBLIC_DIR, {
   index: false,
   dotfiles: 'deny'
 }));
 
-app.use('/api', (req, res) => bad(res, 'Not found', 404));
-
-app.use((req, res) => {
-  res.status(404).sendFile(path.join(PUBLIC_DIR, '404.html'), (err) => {
-    if (err && !res.headersSent) {
-      res.status(404).send('Page not found');
-    }
-  });
+app.use('/api', (req, res) => {
+  return bad(res, 'API endpoint not found.', 404);
 });
 
-/* ---------- Start server ---------- */
+app.use((req, res) => {
+  const notFoundPath = path.join(PUBLIC_DIR, '404.html');
+
+  if (fs.existsSync(notFoundPath)) {
+    return res.status(404).sendFile(notFoundPath);
+  }
+
+  return res.status(404).send('Page not found.');
+});
+
+/* ---------------- START SERVER ---------------- */
 
 app.listen(PORT, () => {
   console.log(`Wanderly running → http://localhost:${PORT}`);
+  console.log(`Login email configured: ${LOGIN_EMAIL}`);
 });
