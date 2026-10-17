@@ -1,125 +1,318 @@
+ 
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wanderly - Login</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin: 0;
-        }
-        .login-card {
-            background: white;
-            padding: 40px;
-            border-radius: 12px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
-            width: 100%;
-            max-width: 380px;
-            text-align: center;
-        }
-        .login-card h2 {
-            margin-bottom: 24px;
-            color: #333;
-        }
-        .input-group {
-            margin-bottom: 16px;
-            text-align: left;
-        }
-        .input-group label {
-            display: block;
-            margin-bottom: 6px;
-            font-size: 14px;
-            color: #666;
-        }
-        .input-group input {
-            width: 100%;
-            padding: 10px 12px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 14px;
-            box-sizing: border-box;
-        }
-        .btn {
-            width: 100%;
-            padding: 12px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-size: 16px;
-            cursor: pointer;
-            font-weight: 600;
-            margin-top: 10px;
-            transition: background 0.2s;
-        }
-        .btn:hover {
-            background-color: #0056b3;
-        }
-        #error-msg {
-            color: #dc3545;
-            font-size: 14px;
-            margin-top: 14px;
-        }
-    </style>
-</head>
-<body>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login | Wanderly</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
 
-    <div class="login-card">
-        <h2>Wanderly Login</h2>
-        <form id="loginForm">
-            <div class="input-group">
-                <label for="email">Email</label>
-                <input type="email" id="email" required placeholder="user@example.com">
-            </div>
-            <div class="input-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" required placeholder="••••••••">
-            </div>
-            <button type="submit" class="btn">Sign In</button>
-        </form>
-        <div id="error-msg"></div>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      font-family: 'DM Sans', sans-serif;
+      background: #f7f5ef;
+      color: #20332b;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .visual {
+      position: relative;
+      min-height: 100vh;
+      overflow: hidden;
+      background:
+        linear-gradient(180deg, rgba(12,31,25,.05), rgba(12,31,25,.78)),
+        url('https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&fit=crop&w=1400&q=85')
+        center/cover;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 42px;
+      color: white;
+    }
+
+    .brand {
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: -1px;
+    }
+
+    .brand span { color: #c5d5a6; }
+
+    .visual-copy { max-width: 470px; }
+
+    .eyebrow {
+      font-size: 11px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: #d4e0c0;
+      margin-bottom: 18px;
+    }
+
+    .visual h1 {
+      font: 500 clamp(42px, 5vw, 70px)/1.08 'Playfair Display', serif;
+      margin-bottom: 20px;
+    }
+
+    .visual-copy p {
+      color: #e2e9df;
+      line-height: 1.8;
+      max-width: 390px;
+    }
+
+    .visual-footer {
+      font-size: 12px;
+      color: #d4dcd4;
+    }
+
+    .panel {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 36px;
+    }
+
+    .login {
+      width: 100%;
+      max-width: 410px;
+    }
+
+    .mobile-brand { display: none; }
+
+    .tag {
+      display: inline-block;
+      background: #e8eddf;
+      color: #4e684e;
+      border-radius: 30px;
+      padding: 8px 13px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 24px;
+    }
+
+    h2 {
+      font: 600 42px/1.15 'Playfair Display', serif;
+      letter-spacing: -1px;
+      margin-bottom: 12px;
+    }
+
+    .subtitle {
+      color: #788078;
+      line-height: 1.7;
+      font-size: 14px;
+      margin-bottom: 32px;
+    }
+
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 9px;
+    }
+
+    .field { margin-bottom: 20px; }
+
+    input {
+      width: 100%;
+      border: 1px solid #dedfd5;
+      background: #fffefa;
+      border-radius: 9px;
+      padding: 15px 14px;
+      font: inherit;
+      font-size: 14px;
+      outline: none;
+      transition: border .2s, box-shadow .2s;
+    }
+
+    input:focus {
+      border-color: #54765b;
+      box-shadow: 0 0 0 3px #54765b18;
+    }
+
+    .password-wrap { position: relative; }
+    .password-wrap input { padding-right: 65px; }
+
+    .toggle {
+      position: absolute;
+      right: 13px;
+      top: 50%;
+      transform: translateY(-50%);
+      border: 0;
+      background: transparent;
+      color: #617363;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .options {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      font-size: 12px;
+      margin: 4px 0 25px;
+    }
+
+    .remember {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #69736a;
+    }
+
+    .remember input { width: 15px; height: 15px; accent-color: #365941; }
+
+    a { color: #365941; text-decoration: none; font-weight: 600; }
+
+    .submit {
+      width: 100%;
+      border: none;
+      background: #294a36;
+      color: white;
+      padding: 16px;
+      border-radius: 9px;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background .2s, transform .2s;
+    }
+
+    .submit:hover { background: #1c3827; transform: translateY(-1px); }
+    .submit:disabled { opacity: .65; cursor: wait; }
+
+    .message {
+      display: none;
+      margin-top: 15px;
+      font-size: 13px;
+      line-height: 1.5;
+      color: #a13c32;
+    }
+
+    .bottom {
+      text-align: center;
+      margin-top: 30px;
+      font-size: 12px;
+      color: #82867e;
+    }
+
+    @media (max-width: 760px) {
+      body { grid-template-columns: 1fr; }
+      .visual { display: none; }
+      .panel { min-height: 100vh; padding: 28px 23px; }
+      .mobile-brand { display: block; font-size: 23px; font-weight: 700; margin-bottom: 52px; }
+      .mobile-brand span { color: #718a55; }
+      h2 { font-size: 37px; }
+      .tag { margin-bottom: 20px; }
+    }
+  </style>
+</head>
+
+<body>
+  <section class="visual">
+    <div class="brand">wanderly<span>.</span></div>
+
+    <div class="visual-copy">
+      <div class="eyebrow">THE WORLD IS WAITING</div>
+      <h1>Find your next somewhere.</h1>
+      <p>Discover remarkable places, create unforgettable journeys, and make every trip a story worth telling.</p>
     </div>
 
-    <script>
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            const errorMsg = document.getElementById('error-msg');
+    <div class="visual-footer">Your journey begins here. &copy; 2026 Wanderly.</div>
+  </section>
 
-            errorMsg.style.color = '#666';
-            errorMsg.textContent = 'Checking...';
+  <main class="panel">
+    <div class="login">
+      <div class="mobile-brand">wanderly<span>.</span></div>
 
-            try {
-                const res = await fetch('/api/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, password })
-                });
+      <div class="tag">Welcome back</div>
+      <h2>Let's get you<br>out there.</h2>
+      <p class="subtitle">Sign in to continue your journey and explore the world with Wanderly.</p>
 
-                const data = await res.json();
+      <form id="loginForm">
+        <div class="field">
+          <label for="email">EMAIL ADDRESS</label>
+          <input id="email" name="email" type="email" placeholder="you@example.com" autocomplete="username" required>
+        </div>
 
-                if (res.ok) {
-                    errorMsg.style.color = 'green';
-                    errorMsg.textContent = 'Success! Redirecting...';
-                    setTimeout(() => {
-                        window.location.href = '/dashboard.html';
-                    }, 500);
-                } else {
-                    errorMsg.style.color = '#dc3545';
-                    errorMsg.textContent = data.message || 'Invalid login details';
-                }
-            } catch (err) {
-                errorMsg.style.color = '#dc3545';
-                errorMsg.textContent = 'Server connection error.';
-            }
+        <div class="field">
+          <label for="password">PASSWORD</label>
+          <div class="password-wrap">
+            <input id="password" name="password" type="password" placeholder="Enter your password" autocomplete="current-password" required>
+            <button class="toggle" type="button" id="togglePassword">Show</button>
+          </div>
+        </div>
+
+        <div class="options">
+          <label class="remember"><input type="checkbox" id="remember"> Remember me</label>
+          <a href="#" id="forgotLink">Forgot password?</a>
+        </div>
+
+        <button class="submit" id="submitBtn" type="submit">Sign in to Wanderly &rarr;</button>
+        <p class="message" id="message" role="alert"></p>
+      </form>
+
+      <div class="bottom">Made for the places you'll never forget.</div>
+    </div>
+  </main>
+
+  <script>
+    const form = document.getElementById('loginForm');
+    const password = document.getElementById('password');
+    const toggle = document.getElementById('togglePassword');
+    const message = document.getElementById('message');
+    const submit = document.getElementById('submitBtn');
+
+    toggle.addEventListener('click', () => {
+      const showing = password.type === 'text';
+      password.type = showing ? 'password' : 'text';
+      toggle.textContent = showing ? 'Show' : 'Hide';
+    });
+
+    document.getElementById('forgotLink').addEventListener('click', (event) => {
+      event.preventDefault();
+      message.style.display = 'block';
+      message.style.color = '#617363';
+      message.textContent = 'Password reset is not configured yet. Please contact the site administrator.';
+    });
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      message.style.display = 'none';
+      submit.disabled = true;
+      submit.textContent = 'Signing in...';
+
+      try {
+        const response = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: document.getElementById('email').value.trim(),
+            password: password.value,
+            remember: document.getElementById('remember').checked
+          })
         });
-    </script>
+
+        const data = await response.json();
+
+        if (!response.ok) throw new Error(data.message || 'Invalid email or password.');
+
+        window.location.href = data.redirect || '/';
+      } catch (error) {
+        message.style.display = 'block';
+        message.style.color = '#a13c32';
+        message.textContent = error.message || 'Unable to sign in. Please try again.';
+      } finally {
+        submit.disabled = false;
+        submit.textContent = 'Sign in to Wanderly →';
+      }
+    });
+  </script>
 </body>
 </html>
