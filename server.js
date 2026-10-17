@@ -1,6 +1,7 @@
 
 
 
+
 require('dotenv').config();
 
 const express = require('express');
@@ -405,7 +406,6 @@ function sendLoginPage(res) {
 
 /* ---------------- LOGIN ROUTES ---------------- */
 
-// FIX: Always show the login page, even if a session already exists.
 app.get('/login', (req, res) => {
   return sendLoginPage(res);
 });
@@ -477,8 +477,10 @@ app.post('/api/logout', (req, res) => {
 
 /* ---------------- PAGE ACCESS ---------------- */
 
-// Visitors must log in before accessing the public homepage.
+// Main URL: logged-out visitors must sign in first.
 app.get('/', (req, res) => {
+  res.setHeader('Cache-Control', 'no-store');
+
   if (!isAuthenticated(req)) {
     return res.redirect('/login');
   }
@@ -486,6 +488,7 @@ app.get('/', (req, res) => {
   return sendPublicHome(res);
 });
 
+// Dashboard is private.
 app.get('/app.html', requireAuth, (req, res) => {
   res.setHeader('Cache-Control', 'no-store');
   return res.sendFile(path.join(PUBLIC_DIR, 'app.html'));
@@ -891,8 +894,22 @@ app.get('/api/summary', (req, res) => {
 
 /* ---------------- STATIC FILES AND ERRORS ---------------- */
 
-// Static middleware comes after explicit page routes so it cannot
-// override the login and homepage routing.
+// FIX: Block direct access to HTML pages while logged out.
+// Keep the login page accessible. CSS, JavaScript, images and fonts
+// can still load normally because this only checks .html requests.
+app.use((req, res, next) => {
+  const requestedPath = req.path.toLowerCase();
+  const isHtmlPage = path.extname(requestedPath) === '.html';
+  const isLoginPage = path.basename(requestedPath) === 'login.html';
+
+  if (isHtmlPage && !isLoginPage && !isAuthenticated(req)) {
+    return res.redirect('/login');
+  }
+
+  next();
+});
+
+// Static middleware comes after explicit page and authentication routes.
 app.use(express.static(PUBLIC_DIR, {
   index: false,
   dotfiles: 'deny'
